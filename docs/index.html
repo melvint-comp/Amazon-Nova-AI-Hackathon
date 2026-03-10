@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>StoryScape</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geo:ital@0;1&family=Passero+One&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h1 class="title">StoryScape</h1>
+    <p class="subtitle">Grant your memories the colors of cinema.</p>
+
+    <div class="card">
+        <textarea id="memoryText" placeholder="Describe your memory..."></textarea>
+        <input type="file" id="imageUpload" multiple accept="image/*">
+        <button id="generateBtn">Generate Story</button>
+    </div>
+
+    <div id="loading" class="loading hidden">Generating your story...</div>
+
+    <div id="storyCard" class="story-card hidden">
+        <h2>Your Story</h2>
+        <div id="storyOutput"></div>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
