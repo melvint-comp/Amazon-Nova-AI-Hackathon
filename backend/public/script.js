@@ -3,56 +3,51 @@ btn.addEventListener("click", generateStory);
 
 async function generateStory() {
     const text = document.getElementById("memoryText").value;
-    const images = document.getElementById("imageUpload").files;
+    const imageFiles = document.getElementById("imageUpload").files;
 
     if (!text) {
         alert("Please describe your memory.");
         return;
     }
+
     document.getElementById("loading").classList.remove("hidden");
     document.getElementById("storyCard").classList.add("hidden");
 
     try {
-        const base64Images = await Promise.all([...images].map(file => fileToBase64(file)));
+        // Convert images to base64
+        const images = await Promise.all(
+            [...imageFiles].map(async (file) => ({
+                data: await fileToBase64(file),
+                mediaType: file.type || "image/png"
+            }))
+        );
 
-        const prompt = `
-You are a cinematic storyteller.
+        const prompt = `You are a cinematic storyteller.
 Create a vivid emotional narrative based on the memory below.
+${images.length > 0 ? "I have also attached an image related to this memory." : ""}
 Memory:
 ${text}
-Write about 250 words.
-`;
+Write about 250 words.`;
 
-        const payload = {
-            model: "nova-2-lite-v1",
-            input: {
-                text: prompt,
-                images: base64Images.map(b64 => ({ type: "image/png", data: b64 }))
-            }
-        };
-
-        const response = await fetch("http://localhost:3000/generate-story", {
+        const response = await fetch("/generate-story", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({ text: prompt, images })
         });
 
         if (!response.ok) {
-            const errText = await response.text();
-            console.error("Backend Error:", errText);
-            alert("Story generation failed. See console.");
+            const errData = await response.json().catch(() => ({}));
+            console.error("Backend Error:", errData);
+            alert(`Story generation failed: ${errData.detail || response.statusText}`);
             document.getElementById("loading").classList.add("hidden");
             return;
         }
 
-        const result = await response.json();
-
-        let story = "Story generation failed.";
-        if (result.output && result.output.text) story = result.output.text;
+        const { story } = await response.json();
 
         document.getElementById("loading").classList.add("hidden");
         document.getElementById("storyCard").classList.remove("hidden");
-        document.getElementById("storyOutput").innerText = story;
+        document.getElementById("storyOutput").innerText = story || "Story generation failed.";
 
     } catch (err) {
         console.error("Fetch Error:", err);
@@ -65,7 +60,7 @@ function fileToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
-            const base64 = reader.result.split(',')[1];
+            const base64 = reader.result.split(",")[1];
             resolve(base64);
         };
         reader.onerror = reject;
